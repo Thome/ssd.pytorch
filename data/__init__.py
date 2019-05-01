@@ -1,6 +1,6 @@
 from .voc0712 import VOCDetection, VOCAnnotationTransform, VOC_CLASSES, VOC_ROOT
-
 from .coco import COCODetection, COCOAnnotationTransform, COCO_CLASSES, COCO_ROOT, get_label_map
+from .bp import BPDetection, BPAnnotationTransform, BP_CLASSES, BP_ROOT, imgToAnns
 from .config import *
 import torch
 import cv2
@@ -19,11 +19,34 @@ def detection_collate(batch):
             2) (list of tensors) annotations for a given image are stacked on
                                  0 dim
     """
+    
+    #sample[0]: tensor of size [3, 300, 300]
+    #sample[1]: [annotation1, annotation2, ...]
+    #annotation: [x1,y1,x2,y2,label]
+
     targets = []
     imgs = []
+    print("Teste cuda: ")
+    a = torch.Tensor([7.5])
+    a.cuda()
+    print(a)
     for sample in batch:
+        bbxs = []
+        for anno in sample[1]:
+            xyz = [0.0,0.0,0.0,0.0]
+            xyz[0]= (float)(anno[0])
+            xyz[1]= (float)(anno[1])
+            xyz[2]= (float)(anno[2])
+            xyz[3]= (float)(anno[3])
+            print(xyz)
+            print(torch.cuda.is_available())
+            bbxs.append(torch.cuda.FloatTensor(xyz))
+        targets.append(torch.stack(bbxs, 0))
         imgs.append(sample[0])
-        targets.append(torch.FloatTensor(sample[1]))
+        #print(targets)
+        #print(sample[0].size())
+        #print(sample[1])
+        print("If tensor is cuda: "+sample[0].is_cuda)
     return torch.stack(imgs, 0), targets
 
 

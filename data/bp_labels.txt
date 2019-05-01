@@ -1,0 +1,13 @@
+0,arm
+1,beard
+2,ear
+3,eye
+4,face
+5,foot
+6,hair
+7,hand
+8,head
+9,leg
+10,mouth
+11,nose
+12,skull

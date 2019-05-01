@@ -8,6 +8,7 @@ import torchvision.transforms as transforms
 import cv2
 import numpy as np
 
+#'gitProjects/pytorch/ssd.pytorch'
 COCO_ROOT = osp.join(HOME, 'data/coco/')
 IMAGES = 'images'
 ANNOTATIONS = 'annotations'
