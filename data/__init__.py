@@ -26,27 +26,18 @@ def detection_collate(batch):
 
     targets = []
     imgs = []
-    print("Teste cuda: ")
-    a = torch.Tensor([7.5])
-    a.cuda()
-    print(a)
     for sample in batch:
         bbxs = []
         for anno in sample[1]:
-            xyz = [0.0,0.0,0.0,0.0]
+            xyz = [0.0,0.0,0.0,0.0,0.0]
             xyz[0]= (float)(anno[0])
             xyz[1]= (float)(anno[1])
             xyz[2]= (float)(anno[2])
             xyz[3]= (float)(anno[3])
-            print(xyz)
-            print(torch.cuda.is_available())
-            bbxs.append(torch.cuda.FloatTensor(xyz))
+            xyz[4]= anno[4]
+            bbxs.append(torch.FloatTensor(xyz))
         targets.append(torch.stack(bbxs, 0))
         imgs.append(sample[0])
-        #print(targets)
-        #print(sample[0].size())
-        #print(sample[1])
-        print("If tensor is cuda: "+sample[0].is_cuda)
     return torch.stack(imgs, 0), targets
 
 

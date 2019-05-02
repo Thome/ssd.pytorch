@@ -6,7 +6,7 @@ import torch.utils.data as data
 import cv2
 import numpy as np
 
-BP_CLASSES = (
+BP_CLASSES = ('background',
     'arm','beard','ear','eye','face',
     'foot','hair','hand','head','leg',
     'mouth','nose','skull' )
@@ -29,7 +29,18 @@ def imgToAnns(annotations, img_id):
                 break
     return anns
 
+def get_label_map(label_file):
+    label_map = {}
+    labels = open(label_file, 'r')
+    for line in labels:
+        ids = line.rstrip('\n').split(',')
+        label_map[ids[1]] = float(ids[0])
+    return label_map
+
 class BPAnnotationTransform(object):
+
+    def __init__(self):
+        self.label_map = get_label_map(osp.join(BP_ROOT, 'bp_labels.txt'))
 
     def __call__(self, target, width, height):
         res = []
@@ -40,7 +51,7 @@ class BPAnnotationTransform(object):
                 # scale height or width
                 point = point / width if i % 2 == 0 else point / height
                 bndbox.append(point)
-            bndbox.append(line[5]) #label
+            bndbox.append(self.label_map[line[5]]) #label
             res += [bndbox]
         return res
 
@@ -52,7 +63,7 @@ class BPDetection(data.Dataset):
         self.target_transform = target_transform
         self.name = dataset_name
 
-        self._imgpath = osp.join(root, 'images')
+        self._imgpath = osp.join(root, 'images')        
         self.ids = list()
         f = open(osp.join(BP_ROOT, "img_ids.txt"), 'r')
         for line in f:
@@ -76,25 +87,19 @@ class BPDetection(data.Dataset):
         img_id = self.ids[index]
         path = osp.join(self._imgpath, img_id)
         img = cv2.imread(path)
-        #print(img_id)
-        #print(img.shape)
         height, width, channels = img.shape
 
         anno = imgToAnns(self.annotations, img_id)
         if self.target_transform is not None:
             anno = self.target_transform(anno, width, height)
-            #print(anno)
 
         if self.transform is not None:
             anno = np.array(anno)
             boxes = anno[:, :4].astype(float)
             labels = np.array(anno[:, 4])
-            #print(boxes)
-            #print(labels)
             img, boxes, labels = self.transform(img, boxes, labels)
             # to rgb
             img = img[:, :, (2, 1, 0)]
-            # img = img.transpose(2, 0, 1)
             anno = np.hstack((boxes, np.expand_dims(labels, axis=1)))
         return torch.from_numpy(img).permute(2, 0, 1), anno, height, width
 
